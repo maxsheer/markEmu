@@ -32,8 +32,8 @@ end;
 var 
 finp, fout, ftra: text;
 mainstr, tmp, tmpser, tmprep: string;
-i,j,k. tmpter: int;
-bus: Pstack;
+i,j,k,tmpter: int;
+bus, cur_rule: Pstack;
 
 
 
@@ -79,23 +79,47 @@ begin
     end;
 end;
 
-function replace(var st: string; needle: string; rep: string)
+function apply_rule(st: string; rule: Pstack): integer;
 var
 i, j, k: integer;
 flag: boolean;
 begin
 	i := 1;
-	while (i <= length(st)) do
+	flag := false;
+	while (i <= length(st) and (not flag)) do
 	begin
 		j := 1;
-		while (needle[j] = st[i + j - 1]) and (j <= length(needle)) 
+		while (rule^.search[j] = st[i + j - 1]) and (j <= length(rule^.search)) 
 		and ((i + j - 1) <= length(st)) do
 			j := j + 1;
-		if (j = length(needle)) then
+		if (j = length(rule^.search)) then
 		begin
-			for k:= length(st) + 1 downto 
+			if (length(rule^.search) > length(rule^.replace)) then
+			begin
+				for k := i to (i + length(rule^.replace) - 1) do
+					st[k] := rule^.replace[k - i + 1];
+				for k := (i + length(rule^.replace)) to length(st) - 1 do
+					st[k] := st[k + length(rule^.search) - length(rule^.replace)];
+			end;
+			if (length(rule^.search) = length(rule^.replace)) then
+				for k := i to (i + length(rule^.replace) - 1) do
+					st[k] := rule^.replace[k - i + 1];
+			if (length(rule^.search) < length(rule^.replace)) then
+			begin
+				for k := (length(st) + length(rule^.replace) - length(rule^.search))  
+				downto (i + length(rule^.replace) - 1) do
+					st[k] := st[k - (length(rule^.replace) - length(rule^.search))];
+				for k := i to (i + length(rule^.replace) - 1) do
+					st[k] := st[k - i + 1];
+			end;
+			flag := true;
 		end;
+		i := i + 1;
 	end;
+	if flag then
+		apply_rule := 1
+	else
+		apply_rule := 0;
 end;
 
 
@@ -148,7 +172,12 @@ begin
 	end;
 
 	{now let the main process begin}
-
+	i := 0;
+	k := 1000;
+	while (i <= k) do
+	begin
+		cur
+	end;
 	
 
 end.
