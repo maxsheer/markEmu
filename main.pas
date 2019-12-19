@@ -19,7 +19,7 @@ Fedor needs:
 
 program markem(input, output);
 
-Type: 
+Type 
 Pstack=^callstack;
 
 callstack=record 
@@ -32,7 +32,7 @@ end;
 var 
 finp, fout, ftra: text;
 mainstr, tmp, tmpser, tmprep: string;
-i,j,k,tmpter: int;
+i,j,k,tmpter, applied: integer;
 bus, cur_rule: Pstack;
 
 
@@ -68,25 +68,25 @@ begin
 	tmp^.next := add;
 end;
 
-procedure freelst(var lst: P);
+procedure freelst(var lst: Pstack);
 begin
     if (lst <> nil) then
     begin
         freelst(lst^.next);
-        lst^.st := '';
+        lst^.search := '';
         lst^.next := nil;
         dispose(lst);
     end;
 end;
 
-function apply_rule(st: string; rule: Pstack): integer;
+function apply_rule(var st: string; rule: Pstack): integer;
 var
 i, j, k: integer;
 flag: boolean;
 begin
 	i := 1;
 	flag := false;
-	while (i <= length(st) and (not flag)) do
+	while (i <= length(st)) and (not flag) do
 	begin
 		j := 1;
 		while (rule^.search[j] = st[i + j - 1]) and (j <= length(rule^.search)) 
@@ -132,12 +132,12 @@ begin
 	reset(ftra);
 	bus := nil;
 
-	readln(tmp, finp);
+	readln(finp, tmp);
 	mainstr := tmp;
-	readln(tmp);
+	readln(finp, tmp);
 	while not eof(finp) do
 	begin
-		readln(tmp);
+		readln(finp, tmp);
 		i := 1;
 
 		tmpser := '';
@@ -147,14 +147,15 @@ begin
 			tmpser[i] := tmp[i];
 			i := i + 1;
 		end;
+		writeln(tmpser);
 		if (tmp[i] = '|') then
 		begin
-			tmpser := 1;
+			tmpter := 1;
 			i := i + 4;
 		end
 		else
 		begin
-			tmpser := 0;
+			tmpter := 0;
 			i := i + 3;
 		end;
 		tmprep := '';
@@ -165,8 +166,9 @@ begin
 			i := i + 1;
 			j := j + 1;
 		end;
+		writeln(tmp,' ', tmpser, ' ', tmprep);
 		if (bus = nil) then
-			bus := initlst(tmpser, tmprep, tmpter)
+			bus := lstinit(tmpser, tmprep, tmpter)
 		else
 			list_pushback(bus, tmpser, tmprep, tmpter);
 	end;
@@ -174,10 +176,21 @@ begin
 	{now let the main process begin}
 	i := 0;
 	k := 1000;
-	while (i <= k) do
+	tmpter := 0;
+	while (i <= k) and (tmpter = 0) do
 	begin
-		cur
+		cur_rule := bus;
+		applied := 0;
+		tmpter := 0;
+		while (cur_rule <> nil) and (applied = 0) do
+		begin
+			applied := apply_rule(mainstr, cur_rule);
+			tmpter := cur_rule^.terminate;
+			cur_rule := cur_rule^.next;
+		end;
+		if applied = 0 then
+			tmpter := 1;
+		i := i + 1;
 	end;
-	
-
+	writeln(mainstr)
 end.
