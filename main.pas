@@ -22,16 +22,22 @@ program markem(input, output);
 Type 
 Pstack=^callstack;
 
+row=record
+	dat: string;
+	len: integer;
+end;
+
 callstack=record 
-	search: string;
-	replace: string;
+	search: row;
+	replace: row;
 	terminate: integer;
 	next: Pstack;
 end;
 
 var 
 finp, fout, ftra: text;
-mainstr, tmp, tmpser, tmprep: string;
+tmp: string;
+mainstr, tmpser, tmprep: row;
 i,j,k,tmpter, applied: integer;
 bus, cur_rule: Pstack;
 
@@ -41,7 +47,7 @@ bus, cur_rule: Pstack;
 {functions}
 {procedures}
 
-function lstinit(s, r: string; t: integer): Pstack;
+function lstinit(s, r: row; t: integer): Pstack;
 var
 out: Pstack;
 begin
@@ -53,7 +59,7 @@ begin
   lstinit := out;
 end;
 
-procedure list_pushback(var lst: Pstack; s, r: string; t: integer);
+procedure list_pushback(var lst: Pstack; s, r: row; t: integer);
 var
 add, tmp: Pstack;
 begin
@@ -79,7 +85,7 @@ begin
     end;
 end;
 
-function apply_rule(var st: string; rule: Pstack): integer;
+function apply_rule(var st: row; rule: Pstack): integer;
 var
 i, j, k: integer;
 flag: boolean;
