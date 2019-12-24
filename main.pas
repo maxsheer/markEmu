@@ -35,12 +35,13 @@ callstack=record
 end;
 
 var 
+soc: set of char;
 finp, fout, ftra: text;
 tmp: string;
 mainstr, tmpser, tmprep: row;
 i,j,k,tmpter, applied: integer;
 bus, cur_rule: Pstack;
-
+choice: char;
 
 
 
@@ -53,6 +54,14 @@ begin
 	for i := 1 to s.len do
 		write(s.dat[i]);
 	writeln;
+end;
+
+procedure printfd(s: row; var F: text);
+var i: integer;
+begin
+	for i := 1 to s.len do
+		write(F, s.dat[i]);
+	writeln(F);
 end;
 
 function lstinit(s, r: row; t: integer): Pstack;
@@ -107,7 +116,6 @@ begin
 		while (rule^.search.dat[j + 1] = st.dat[i + j]) and (j <= rule^.search.len) 
 		and ((i + j) <= st.len) do
 			j := j + 1;
-		writeln(j, ' comp ', rule^.search.len);
 		if (j = rule^.search.len) then
 		begin
 			if (rule^.search.len > rule^.replace.len) then
@@ -122,7 +130,6 @@ begin
 			if (rule^.search.len = rule^.replace.len) then
 				for k := i to (i + rule^.replace.len - 1) do
 				begin
-					writeln('replacing ', st.dat[k], ' to ', rule^.replace.dat[k - i + 1]);
 					st.dat[k] := rule^.replace.dat[k - i + 1];
 				end;
 				
@@ -147,12 +154,14 @@ end;
 
 
 begin
+	{initialization}
 	assign(finp, 'some_input.txt');
 	assign(fout, 'some_output.txt');
 	assign(ftra, 'some_trace.txt');
 	reset(finp);
-	reset(fout);
-	reset(ftra);
+	rewrite(fout);
+	rewrite(ftra);
+	soc := ['Y', 'y', 'N', 'n'];
 	bus := nil;
 
 	readln(finp, tmp);
@@ -173,7 +182,6 @@ begin
 			tmpser.len := tmpser.len + 1;
 			i := i + 1;
 		end;
-		print(tmpser);
 		if (tmp[i] = '|') then
 		begin
 			tmpter := 1;
@@ -194,9 +202,6 @@ begin
 			i := i + 1;
 			j := j + 1;
 		end;
-		writeln(tmp);
-		print(tmpser);
-		print(tmprep);
 		if (bus = nil) then
 			bus := lstinit(tmpser, tmprep, tmpter)
 		else
@@ -218,9 +223,28 @@ begin
 			tmpter := cur_rule^.terminate;
 			cur_rule := cur_rule^.next;
 		end;
+		
 		if applied = 0 then
 			tmpter := 1;
 		i := i + 1;
+		printfd(mainstr, ftra);
+		if (i mod 1000) = 999 then
+		begin
+			choice := chr(0);
+			writeln('Process reached its' + chr(39) + '1000th iteration. Continue? [Y/N]');
+			readln(choice);
+			while not (choice in soc) do begin
+				writeln('Incorrect option. Make your choice again. [Y/N]');
+				readln(choice);
+			end;
+			case choice of
+				'Y', 'y': k := k + 1000;
+				'N', 'n': i := i + 1;
+			end;
+		end;
 	end;
-	print(mainstr);
+	printfd(mainstr, fout);
+	close(finp);
+	close(fout);
+	close(ftra);
 end.
