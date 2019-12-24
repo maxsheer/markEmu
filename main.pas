@@ -47,6 +47,14 @@ bus, cur_rule: Pstack;
 {functions}
 {procedures}
 
+procedure print(s: row);
+var i: integer;
+begin
+	for i := 1 to s.len do
+		write(s.dat[i]);
+	writeln;
+end;
+
 function lstinit(s, r: row; t: integer): Pstack;
 var
 out: Pstack;
@@ -79,7 +87,8 @@ begin
     if (lst <> nil) then
     begin
         freelst(lst^.next);
-        lst^.search := '';
+        lst^.search.dat := '';
+		lst^.search.len := 0;
         lst^.next := nil;
         dispose(lst);
     end;
@@ -92,31 +101,39 @@ flag: boolean;
 begin
 	i := 1;
 	flag := false;
-	while (i <= length(st)) and (not flag) do
+	while (i <= st.len) and (not flag) do
 	begin
-		j := 1;
-		while (rule^.search[j] = st[i + j - 1]) and (j <= length(rule^.search)) 
-		and ((i + j - 1) <= length(st)) do
+		j := 0;
+		while (rule^.search.dat[j + 1] = st.dat[i + j]) and (j <= rule^.search.len) 
+		and ((i + j) <= st.len) do
 			j := j + 1;
-		if (j = length(rule^.search)) then
+		writeln(j, ' comp ', rule^.search.len);
+		if (j = rule^.search.len) then
 		begin
-			if (length(rule^.search) > length(rule^.replace)) then
+			if (rule^.search.len > rule^.replace.len) then
 			begin
-				for k := i to (i + length(rule^.replace) - 1) do
-					st[k] := rule^.replace[k - i + 1];
-				for k := (i + length(rule^.replace)) to length(st) - 1 do
-					st[k] := st[k + length(rule^.search) - length(rule^.replace)];
+				for k := i to (i + rule^.replace.len - 1) do
+					st.dat[k] := rule^.replace.dat[k - i + 1];
+				for k := (i + rule^.replace.len) to (st.len - 1) do
+					st.dat[k] := st.dat[k + rule^.search.len - rule^.replace.len];
+				st.len := st.len - (rule^.search.len - rule^.replace.len);
 			end;
-			if (length(rule^.search) = length(rule^.replace)) then
-				for k := i to (i + length(rule^.replace) - 1) do
-					st[k] := rule^.replace[k - i + 1];
-			if (length(rule^.search) < length(rule^.replace)) then
+
+			if (rule^.search.len = rule^.replace.len) then
+				for k := i to (i + rule^.replace.len - 1) do
+				begin
+					writeln('replacing ', st.dat[k], ' to ', rule^.replace.dat[k - i + 1]);
+					st.dat[k] := rule^.replace.dat[k - i + 1];
+				end;
+				
+			if (rule^.search.len < rule^.replace.len) then
 			begin
-				for k := (length(st) + length(rule^.replace) - length(rule^.search))  
-				downto (i + length(rule^.replace) - 1) do
-					st[k] := st[k - (length(rule^.replace) - length(rule^.search))];
-				for k := i to (i + length(rule^.replace) - 1) do
-					st[k] := st[k - i + 1];
+				for k := (st.len + rule^.replace.len - rule^.search.len)  
+				downto (i + rule^.replace.len - 1) do
+					st.dat[k] := st.dat[k - (rule^.replace.len - rule^.search.len)];
+				for k := i to (i + rule^.replace.len - 1) do
+					st.dat[k] := rule^.replace.dat[k - i + 1];
+				st.len := st.len - (rule^.search.len - rule^.replace.len)
 			end;
 			flag := true;
 		end;
@@ -139,21 +156,24 @@ begin
 	bus := nil;
 
 	readln(finp, tmp);
-	mainstr := tmp;
+	mainstr.dat := tmp;
+	mainstr.len := length(tmp);
 	readln(finp, tmp);
 	while not eof(finp) do
 	begin
 		readln(finp, tmp);
 		i := 1;
 
-		tmpser := '';
+		tmpser.dat := '';
+		tmpser.len := 0;
 		while (tmp[i] <> '-') and (tmp[i] <> '|')
 		and (i <= length(tmp)) do
 		begin
-			tmpser[i] := tmp[i];
+			tmpser.dat[i] := tmp[i];
+			tmpser.len := tmpser.len + 1;
 			i := i + 1;
 		end;
-		writeln(tmpser);
+		print(tmpser);
 		if (tmp[i] = '|') then
 		begin
 			tmpter := 1;
@@ -164,15 +184,19 @@ begin
 			tmpter := 0;
 			i := i + 3;
 		end;
-		tmprep := '';
+		tmprep.dat := '';
+		tmprep.len := 0;
 		j := 1;
 		while (i <= length(tmp)) do
 		begin
-			tmprep[j] := tmp[i];
+			tmprep.dat[j] := tmp[i];
+			tmprep.len := tmprep.len + 1;
 			i := i + 1;
 			j := j + 1;
 		end;
-		writeln(tmp,' ', tmpser, ' ', tmprep);
+		writeln(tmp);
+		print(tmpser);
+		print(tmprep);
 		if (bus = nil) then
 			bus := lstinit(tmpser, tmprep, tmpter)
 		else
@@ -198,5 +222,5 @@ begin
 			tmpter := 1;
 		i := i + 1;
 	end;
-	writeln(mainstr)
+	print(mainstr);
 end.
