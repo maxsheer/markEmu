@@ -6,27 +6,31 @@
 program markem(input, output);
 
 Type 
-Pstack=^callstack;
+Pstack=^callstack; {link to the list of rules}
 
-row=record
+row=record {i am using this instead of string format to handle length}
 	dat: string;
 	len: integer;
 end;
 
-callstack=record 
-	search: row;
-	replace: row;
-	terminate: integer;
+callstack=record {type for rules list}
+	search: row; {left part of rule}
+	replace: row; {right part of rule}
+	terminate: integer; {to rewrite boolean}
 	next: Pstack;
+	{to add field for rulenum}
 end;
 
-var 
-soc: set of char;
-finp, fout, ftra: text;
-tmp: string;
-mainstr, tmpser, tmprep, main_prev: row;
+var
+soc: set of char; {set of choices}
+finp, fout, ftra: text; {files of input, output and traces. output is now usingo nly for final answer}
+tmp: string; {utility string used to store read input}
+mainstr, {current state of initial string}
+tmpser, tmprep, {utility for search and replace strings of current rule}
+main_prev: row; {utility for pretty traces}
 i, j, k, tmpter, rc, applied: integer;
-bus, cur_rule: Pstack;
+bus, {head of rule list}
+cur_rule: Pstack;
 choice: char;
 
 
@@ -34,7 +38,7 @@ choice: char;
 {functions}
 {procedures}
 
-procedure print(s: row);
+procedure print(s: row); {testing of output}
 var i: integer;
 begin
 	for i := 1 to s.len do
@@ -42,14 +46,14 @@ begin
 	writeln;
 end;
 
-procedure printfd(s: row; var F: text);
+procedure printfd(s: row; var F: text); {output in particular file descriptor. i am using this function in order to trace and output final answer}
 var i: integer;
 begin
 	for i := 1 to s.len do
 		write(F, s.dat[i]);
 end;
 
-procedure printfdln(s: row; var F: text);
+procedure printfdln(s: row; var F: text); {same with newline}
 var i: integer;
 begin
 	for i := 1 to s.len do
@@ -57,7 +61,7 @@ begin
 	writeln(F);
 end;
 
-function lstinit(s, r: row; t: integer): Pstack;
+function lstinit(s, r: row; t: integer): Pstack; {creating head of list}
 var
 out: Pstack;
 begin
@@ -69,7 +73,7 @@ begin
   lstinit := out;
 end;
 
-procedure list_pushback(var lst: Pstack; s, r: row; t: integer);
+procedure list_pushback(var lst: Pstack; s, r: row; t: integer); {need to merge this with lstinit}
 var
 add, tmp: Pstack;
 begin
@@ -90,8 +94,9 @@ begin
     begin
         freelst(lst^.next);
         lst^.search.dat := '';
-		lst^.search.len := 0;
-        lst^.next := nil;
+	lst^.search.len := 0;
+        lst^.replace.dat := '';
+        lst^.replace.len := 0;
         dispose(lst);
     end;
 end;
@@ -229,7 +234,7 @@ begin
 		begin
 			rc := 1;
 			main_prev := mainstr;
-			applied := apply_rule(mainstr, cur_rule);
+			applied := apply_rule(mainstr, cur_rule, ftra);
 			tmpter := cur_rule^.terminate;
 			if (applied > 0) then
 			begin
@@ -264,7 +269,9 @@ begin
 			end;
 		end;
 	end;
+
 	printfd(mainstr, fout);
+	freelst(bus);
 	close(finp);
 	close(fout);
 	close(ftra);
