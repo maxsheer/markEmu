@@ -229,7 +229,7 @@ begin
 		begin
 			rc := 1;
 			main_prev := mainstr;
-			applied := apply_rule(mainstr, cur_rule, ftra);
+			applied := apply_rule(mainstr, cur_rule);
 			tmpter := cur_rule^.terminate;
 			if (applied > 0) then
 			begin
